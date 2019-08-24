@@ -5,19 +5,16 @@ class TestSimpleDb < Minitest::Test
 
   def test_exists?
     db = SimpleDb.new
-
     refute db.exists?("a")
   end
 
   def test_get
     db = SimpleDb.new
-
     refute db.get("a")
   end
 
   def test_get_and_set
     db = SimpleDb.new
-
     db.set("a", 1)
     assert_equal(db.get("a"), 1)
   end
@@ -63,6 +60,7 @@ class TestSimpleDb < Minitest::Test
     db = SimpleDb.new
 
     db.set("a", 1)
+
     db.begin
     db.set("a", 2)
     db.set("b", 3)
@@ -74,5 +72,23 @@ class TestSimpleDb < Minitest::Test
     db.rollback
     assert_equal(db.get("a"), 1)
     assert_nil(db.get("b"))
+  end
+
+  def test_nested_transactions
+    db = SimpleDb.new
+
+    db.set("a", 1)
+
+    db.begin
+    db.set("a", 2)
+    db.set("b", 3)
+
+    db.begin
+    db.set("a", 4)
+    db.set("b", 5)
+
+    db.commit
+    assert_equal(db.get("a"), 4)
+    assert_equal(db.get("b"), 5)
   end
 end
