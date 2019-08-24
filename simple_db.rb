@@ -4,8 +4,8 @@ class SimpleDb
 	class Transaction
 		attr_accessor :state
 
-		def initialize
-			@state = {}
+		def initialize(state = {})
+			@state = state
 		end
 	end
 
@@ -15,43 +15,27 @@ class SimpleDb
 	end
 
 	def exists?(key)
-		if transactions.any?
-			open_transaction.state.has_key?(key)
-		else
-			state.has_key?(key)
-		end
+		current_transaction.state.has_key?(key)
 	end
 
 	def get(key)
-		if transactions.any?
-			open_transaction.state[key]
-		else
-			state[key]
-		end
+		current_transaction.state[key]
 	end
 
 	def set(key, value)
-		if transactions.any?
-			open_transaction.state[key] = value
-		else
-			state[key] = value
-		end
+		current_transaction.state[key] = value
 	end
 
 	def unset(key)
-		if transactions.any?
-			open_transaction.state.delete(key)
-		else
-			state.delete(key)
-		end
+		current_transaction.state.delete(key)
 	end
 
 	def begin
-		transactions << Transaction.new
+		transactions << Transaction.new(state: state)
 	end
 
 	def commit
-		state = open_transaction.state
+		state = current_transaction.state
 	end
 
 	def rollback
@@ -60,7 +44,7 @@ class SimpleDb
 
 	private
 
-	def open_transaction
-		transactions.last
+	def current_transaction
+		transactions.last || self
 	end
 end
