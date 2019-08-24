@@ -91,4 +91,30 @@ class TestSimpleDb < Minitest::Test
     assert_equal(db.get("a"), 4)
     assert_equal(db.get("b"), 5)
   end
+
+  def test_nested_transactions_and_multiple_rollbacks
+    db = SimpleDb.new
+
+    db.set("a", 1)
+
+    db.begin
+    db.set("a", 2)
+    db.set("b", 3)
+
+    db.begin
+    db.set("a", 4)
+    db.set("b", 5)
+
+    db.commit
+    assert_equal(db.get("a"), 4)
+    assert_equal(db.get("b"), 5)
+
+    db.rollback
+    assert_equal(db.get("a"), 2)
+    assert_equal(db.get("b"), 3)
+
+    db.rollback
+    assert_equal(db.get("a"), 1)
+    assert_nil(db.get("b"))
+  end
 end
